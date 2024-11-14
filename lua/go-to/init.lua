@@ -7,6 +7,15 @@ M.config = {
 	display_only = false,
 	confirm_delete = true,
 	sort = "frequency",
+	mappings = {
+		["<C-w>"] = {
+			action = function(selection)
+				local cmd = ":" .. selection.value.command .. " "
+				vim.fn.feedkeys(vim.api.nvim_replace_termcodes(cmd, true, true, true), "n")
+			end,
+			close = true,
+		},
+	},
 }
 
 local function show_commands(callback)
@@ -27,6 +36,7 @@ local function show_commands(callback)
 		end,
 		display_only = M.config.display_only,
 		sort = M.config.sort,
+		mappings = M.config.mappings,
 	}
 	picker.show_commands(opts)
 end
@@ -68,7 +78,6 @@ function M.delete_command()
 	show_commands(function(selection)
 		local display = selection.value.display
 
-		-- Check if the user wants to delete the command
 		if M.config.confirm_delete and vim.fn.input("Delete " .. display .. "? (y/n): ") ~= "y" then
 			return
 		end

@@ -2,7 +2,6 @@ local pickers = require("telescope.pickers")
 local finders = require("telescope.finders")
 local conf = require("telescope.config").values
 local actions = require("telescope.actions")
-local action_set = require("telescope.actions.set")
 local action_state = require("telescope.actions.state")
 local entry_display = require("telescope.pickers.entry_display")
 
@@ -29,17 +28,16 @@ local sort_options = {
 }
 
 local function display_entry_maker(entry, max_width)
-	-- Just display the display name
 	local displayer = entry_display.create({
-		separator = " ", -- Separator between columns
+		separator = " ",
 		items = {
-			{ width = max_width }, -- Width of first column
+			{ width = max_width },
 		},
 	})
 
 	local make_display = function()
 		return displayer({
-			{ entry.display, "TelescopeResultsIdentifier" }, -- First column (blue)
+			{ entry.display, "TelescopeResultsIdentifier" },
 		})
 	end
 
@@ -52,17 +50,17 @@ end
 
 local function display_command_entry_maker(entry, max_width)
 	local displayer = entry_display.create({
-		separator = " ", -- Separator between columns
+		separator = " ",
 		items = {
-			{ width = max_width }, -- Width of first column
-			{ remaining = true }, -- Second column takes remaining space
+			{ width = max_width },
+			{ remaining = true },
 		},
 	})
 
 	local make_display = function()
 		return displayer({
-			{ entry.display, "TelescopeResultsIdentifier" }, -- First column (blue)
-			{ entry.command, "TelescopeResultsConstant" }, -- Second column (yellow)
+			{ entry.display, "TelescopeResultsIdentifier" },
+			{ entry.command, "TelescopeResultsConstant" },
 		})
 	end
 
@@ -81,7 +79,7 @@ function M.show_commands(opts)
 	else
 		entry_maker = display_command_entry_maker
 	end
-	-- Convert data to format telescope expects
+
 	local commands = {}
 	for key, value in pairs(data) do
 		table.insert(commands, {
@@ -95,7 +93,7 @@ function M.show_commands(opts)
 	for _, command in ipairs(commands) do
 		max_width = math.max(max_width, #command.display)
 	end
-	-- Max 1.25 times the width of "Command"
+
 	max_width = math.floor(1.25 * max_width)
 
 	local sorter
@@ -108,7 +106,6 @@ function M.show_commands(opts)
 		commands = sorter(commands)
 	end
 
-	-- Create picker
 	pickers
 		.new({}, {
 			prompt_title = "Commands",
@@ -122,7 +119,7 @@ function M.show_commands(opts)
 			attach_mappings = function(prompt_bufnr, map)
 				actions.select_default:replace(function()
 					actions.close(prompt_bufnr)
-					-- Enter command in command line
+
 					local selection = action_state.get_selected_entry()
 					if not selection then
 						return
@@ -131,12 +128,15 @@ function M.show_commands(opts)
 					opts.callback(selection)
 				end)
 
-				map("i", "<C-w>", function()
-					actions.close(prompt_bufnr)
-					local selection = action_state.get_selected_entry()
-					local cmd = ":" .. selection.value.command .. " "
-					vim.fn.feedkeys(vim.api.nvim_replace_termcodes(cmd, true, true, true), "n")
-				end)
+				for key, value in pairs(opts.mappings) do
+					map("i", key, function()
+						if value.close then
+							actions.close(prompt_bufnr)
+						end
+						local selection = action_state.get_selected_entry()
+						value.action(selection)
+					end)
+				end
 
 				return true
 			end,
