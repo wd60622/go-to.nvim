@@ -2,7 +2,7 @@ local M = {}
 
 local function get_data_dir()
 	local config_dir = vim.fn.stdpath("data")
-	local plugin_dir = config_dir .. "/goto"
+	local plugin_dir = config_dir .. "/go-to"
 
 	-- Create directory if it doesn't exist
 	if vim.fn.isdirectory(plugin_dir) == 0 then

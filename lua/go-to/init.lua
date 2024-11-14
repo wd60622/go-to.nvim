@@ -6,6 +6,7 @@ local M = {}
 M.config = {
 	display_only = false,
 	confirm_delete = true,
+	sort = "frequency",
 }
 
 local function show_commands(callback)
@@ -18,8 +19,14 @@ local function show_commands(callback)
 
 	local opts = {
 		data = data,
-		callback = callback,
+		callback = function(selection)
+			data[selection.value.display].number = data[selection.value.display].number + 1
+			io.write_json(file_path, data)
+
+			vim.cmd(":" .. selection.value.command)
+		end,
 		display_only = M.config.display_only,
+		sort = M.config.sort,
 	}
 	picker.show_commands(opts)
 end
@@ -53,7 +60,7 @@ function M.add_command(opts)
 
 	local file_path = io.local_file_path()
 	local data = io.read_json(file_path)
-	data[display] = command
+	data[display] = { command = command, number = 0 }
 	io.write_json(file_path, data)
 end
 

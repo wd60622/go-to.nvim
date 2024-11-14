@@ -7,6 +7,26 @@ local entry_display = require("telescope.pickers.entry_display")
 
 local M = {}
 
+local function alphabetical_sorter(a, b)
+	return a.display < b.display
+end
+
+local function frequency_sorter(a, b)
+	return a.number > b.number
+end
+
+local function create_sort(sorter)
+	return function(data)
+		table.sort(data, sorter)
+		return data
+	end
+end
+
+local sort_options = {
+	alphabetical = create_sort(alphabetical_sorter),
+	frequency = create_sort(frequency_sorter),
+}
+
 local function display_entry_maker(entry, max_width)
 	-- Just display the display name
 	local displayer = entry_display.create({
@@ -52,13 +72,8 @@ local function display_command_entry_maker(entry, max_width)
 	}
 end
 
-local function edit(selection)
-	vim.cmd(":" .. selection.value.command)
-end
-
 function M.show_commands(opts)
 	local data = opts.data
-	opts.callback = opts.callback or edit
 	local entry_maker
 	if opts.display_only then
 		entry_maker = display_entry_maker
@@ -70,7 +85,8 @@ function M.show_commands(opts)
 	for key, value in pairs(data) do
 		table.insert(commands, {
 			display = key,
-			command = value,
+			command = value.command,
+			number = value.number,
 		})
 	end
 
@@ -80,6 +96,11 @@ function M.show_commands(opts)
 	end
 	-- Max 1.25 times the width of "Command"
 	max_width = math.floor(1.25 * max_width)
+
+	local sorter = sort_options[opts.sort]
+	if sorter then
+		commands = sorter(commands)
+	end
 
 	-- Create picker
 	pickers
@@ -100,7 +121,6 @@ function M.show_commands(opts)
 					if not selection then
 						return
 					end
-					vim.print(opts.callback)
 					opts.callback(selection)
 				end)
 				return true
