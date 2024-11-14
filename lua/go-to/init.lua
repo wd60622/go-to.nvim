@@ -28,12 +28,7 @@ local function show_commands(callback)
 
 	local opts = {
 		data = data,
-		callback = function(selection)
-			data[selection.value.display].number = data[selection.value.display].number + 1
-			io.write_json(file_path, data)
-
-			vim.cmd(":" .. selection.value.command)
-		end,
+		callback = callback,
 		display_only = M.config.display_only,
 		sort = M.config.sort,
 		mappings = M.config.mappings,
@@ -42,6 +37,14 @@ local function show_commands(callback)
 end
 
 function M.show_commands(opts)
+	opts.callback = function(selection)
+		local file_path = io.local_file_path()
+		local data = io.read_json(file_path)
+		data[selection.value.display].number = data[selection.value.display].number + 1
+		io.write_json(file_path, data)
+
+		vim.cmd(":" .. selection.value.command)
+	end
 	show_commands(opts.callback)
 end
 
