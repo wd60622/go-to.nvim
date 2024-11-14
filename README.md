@@ -6,7 +6,7 @@ Store your go-to commands and access them with fuzzy search.
 
 ## Installation
 
-Install with your favorite plugin manager, for example with [lazy.nvim](https://github.com/folke/lazy.nvim):
+Install with your favorite plugin manager. For example, with [lazy.nvim](https://github.com/folke/lazy.nvim):
 
 ```lua
 {
