@@ -2,6 +2,7 @@ local pickers = require("telescope.pickers")
 local finders = require("telescope.finders")
 local conf = require("telescope.config").values
 local actions = require("telescope.actions")
+local action_set = require("telescope.actions.set")
 local action_state = require("telescope.actions.state")
 local entry_display = require("telescope.pickers.entry_display")
 
@@ -97,7 +98,12 @@ function M.show_commands(opts)
 	-- Max 1.25 times the width of "Command"
 	max_width = math.floor(1.25 * max_width)
 
-	local sorter = sort_options[opts.sort]
+	local sorter
+	if type(opts.sort) == "function" then
+		sorter = create_sort(opts.sort)
+	else
+		sorter = sort_options[opts.sort]
+	end
 	if sorter then
 		commands = sorter(commands)
 	end
@@ -116,13 +122,22 @@ function M.show_commands(opts)
 			attach_mappings = function(prompt_bufnr, map)
 				actions.select_default:replace(function()
 					actions.close(prompt_bufnr)
-					local selection = action_state.get_selected_entry()
 					-- Enter command in command line
+					local selection = action_state.get_selected_entry()
 					if not selection then
 						return
 					end
+
 					opts.callback(selection)
 				end)
+
+				map("i", "<C-w>", function()
+					actions.close(prompt_bufnr)
+					local selection = action_state.get_selected_entry()
+					local cmd = ":" .. selection.value.command .. " "
+					vim.fn.feedkeys(vim.api.nvim_replace_termcodes(cmd, true, true, true), "n")
+				end)
+
 				return true
 			end,
 		})
