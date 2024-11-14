@@ -8,7 +8,7 @@ local entry_display = require("telescope.pickers.entry_display")
 local M = {}
 
 local function alphabetical_sorter(a, b)
-	return a.display < b.display
+	return string.lower(a.display) < string.lower(b.display)
 end
 
 local function frequency_sorter(a, b)
@@ -97,10 +97,10 @@ function M.show_commands(opts)
 	max_width = math.floor(1.25 * max_width)
 
 	local sorter
-	if type(opts.sort) == "function" then
-		sorter = create_sort(opts.sort)
+	if type(opts.sort_by) == "function" then
+		sorter = create_sort(opts.sort_by)
 	else
-		sorter = sort_options[opts.sort]
+		sorter = sort_options[opts.sort_by]
 	end
 	if sorter then
 		commands = sorter(commands)
@@ -108,7 +108,7 @@ function M.show_commands(opts)
 
 	pickers
 		.new({}, {
-			prompt_title = "Commands",
+			results_title = "Go-To Commands",
 			finder = finders.new_table({
 				results = commands,
 				entry_maker = function(entry)

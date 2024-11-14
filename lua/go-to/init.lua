@@ -6,7 +6,7 @@ local M = {}
 M.config = {
 	display_only = false,
 	confirm_delete = true,
-	sort = "frequency",
+	sort_by = "frequency",
 	mappings = {
 		["<C-w>"] = {
 			action = function(selection)
@@ -30,7 +30,7 @@ local function show_commands(callback)
 		data = data,
 		callback = callback,
 		display_only = M.config.display_only,
-		sort = M.config.sort,
+		sort_by = M.config.sort_by,
 		mappings = M.config.mappings,
 	}
 	picker.show_commands(opts)
@@ -61,15 +61,16 @@ local function trim(str)
 end
 
 function M.add_command(opts)
-	local display = opts.display or vim.fn.input("Display: ")
-	local command = opts.command or vim.fn.input("Command: ")
+	local command = opts.command or vim.fn.input("Enter Command: ")
+	local display = opts.display or vim.fn.input("Enter Display: ")
+
+	if not display or display == nil or display == "" or not command or display == nil or command == "" then
+		print("Display and command are required!")
+		return
+	end
 
 	display = trim(display)
 	command = trim(command)
-
-	if display == nil then
-		return
-	end
 
 	local file_path = io.local_file_path()
 	local data = io.read_json(file_path)
@@ -98,8 +99,17 @@ function M.setup(opts)
 
 	vim.api.nvim_create_user_command("ShowCommands", M.show_commands, {})
 	vim.api.nvim_create_user_command("EditCommands", M.edit_commands, {})
-	vim.api.nvim_create_user_command("AddCommand", M.add_command, {})
+	vim.api.nvim_create_user_command("AddCommand", M.add_command, { nargs = "*" })
 	vim.api.nvim_create_user_command("DeleteCommand", M.delete_command, {})
+
+	vim.keymap.set("c", "<C-s>", function()
+		local cmd_type = vim.fn.getcmdtype()
+		if cmd_type ~= ":" then
+			return
+		end
+
+		M.add_command({ command = vim.fn.getcmdline() })
+	end)
 end
 
 return M
