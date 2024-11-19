@@ -11,7 +11,11 @@ Install with your favorite plugin manager. For example, with [lazy.nvim](https:/
 ```lua
 {
     "wd60622/go-to.nvim",
-    dependencies = { "nvim-telscope/telescope.nvim" },
+    dependencies = { 
+      "nvim-telescope/telescope.nvim",
+      -- Optional 
+      -- "rcarriga/nvim-notify",
+    },
     opts = {
         display_only = false,
         confirm_delete = true,
@@ -21,6 +25,8 @@ Install with your favorite plugin manager. For example, with [lazy.nvim](https:/
 ```
 
 ## Usage
+
+### Available Commands
 
 The plugin provides the following commands:
 
@@ -33,4 +39,11 @@ The plugin provides the following commands:
 
 Each set of commands are project specific.
 
-While in command mode, use `<C-s>` to save off the current command to the list.
+### Available Mappings
+
+| Location | Key | Description | 
+| --- | --- | --- |
+| command mode | `<C-s>` | Save off the current command | 
+| picker | `<C-d>` | Delete the current command | 
+| picker | `<C-e>` | Edit the current command | 
+| picker | `<C-m>` | Modify the current command | 
