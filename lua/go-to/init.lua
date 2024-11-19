@@ -1,6 +1,13 @@
 local io = require("go-to.io")
 local picker = require("go-to.picker")
 
+local function trim(str)
+  if not str then
+    return nil
+  end
+  return str:gsub("^%s*(.-)%s*$", "%1")
+end
+
 local M = {}
 
 M.config = {
@@ -8,7 +15,7 @@ M.config = {
   confirm_delete = true,
   sort_by = "frequency",
   mappings = {
-    ["<C-e>"] = {
+    ["<C-m>"] = {
       action = function(selection)
         local cmd = ":" .. selection.value.command .. " "
         vim.fn.feedkeys(
@@ -18,20 +25,40 @@ M.config = {
       end,
       close = true,
     },
+    ["<C-e>"] = {
+      action = function(selection)
+        local display = selection.value.display
+        local file_path = io.local_file_path()
+        local data = io.read_json(file_path)
+        local new_command = trim(vim.fn.input("Enter the new command: "))
+        vim.print(new_command)
+        if new_command == "" then
+          vim.notify("Command was not updated")
+        end
+        data[display].command = new_command
+        io.write_json(file_path, data)
+      end,
+      close = true,
+    },
     ["<C-d>"] = {
       action = function(selection)
-        vim.notify("Trying to delete " .. selection.value.display)
+        local display = selection.value.display
+        local file_path = io.local_file_path()
+        local data = io.read_json(file_path)
+        data[display] = nil
+        io.write_json(file_path, data)
+        vim.notify("Deleted the command: " .. selection.value.display)
       end,
-      close = false,
+      close = true,
     },
   },
 }
 
-local function show_commands(callback)
+local function use_picker(callback)
   local file_path = io.local_file_path()
   local data = io.read_json(file_path)
   if next(data) == nil then
-    print("No commands found!")
+    vim.notify("No commands found!")
     return
   end
 
@@ -45,8 +72,8 @@ local function show_commands(callback)
   picker.show_commands(opts)
 end
 
-function M.show_commands(opts)
-  opts.callback = function(selection)
+function M.show_commands()
+  use_picker(function(selection)
     local file_path = io.local_file_path()
     local data = io.read_json(file_path)
     data[selection.value.display].number = data[selection.value.display].number
@@ -54,20 +81,12 @@ function M.show_commands(opts)
     io.write_json(file_path, data)
 
     vim.cmd(":" .. selection.value.command)
-  end
-  show_commands(opts.callback)
+  end)
 end
 
 function M.edit_commands()
   local file_path = io.local_file_path()
   vim.cmd("edit " .. file_path)
-end
-
-local function trim(str)
-  if not str then
-    return nil
-  end
-  return str:gsub("^%s*(.-)%s*$", "%1")
 end
 
 function M.add_command(opts)
@@ -82,7 +101,7 @@ function M.add_command(opts)
     or display == nil
     or command == ""
   then
-    print("Display and command are required!")
+    vim.notify("Display and command are required!")
     return
   end
 
@@ -96,7 +115,7 @@ function M.add_command(opts)
 end
 
 function M.delete_command()
-  show_commands(function(selection)
+  use_picker(function(selection)
     local display = selection.value.display
 
     if
@@ -110,7 +129,7 @@ function M.delete_command()
     local data = io.read_json(file_path)
     data[display] = nil
     io.write_json(file_path, data)
-    print("Deleted " .. display)
+    vim.notify("Deleted " .. display)
   end)
 end
 

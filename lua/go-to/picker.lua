@@ -2,6 +2,7 @@ local pickers = require("telescope.pickers")
 local finders = require("telescope.finders")
 local conf = require("telescope.config").values
 local actions = require("telescope.actions")
+local action_set = require("telescope.actions.set")
 local action_state = require("telescope.actions.state")
 local entry_display = require("telescope.pickers.entry_display")
 
@@ -106,6 +107,20 @@ function M.show_commands(opts)
     commands = sorter(commands)
   end
 
+  local function replace(prompt_bufnr, _)
+    vim.notify(
+      "I am calling the replace function... ideally with the callback."
+    )
+    actions.close(prompt_bufnr)
+
+    local selection = action_state.get_selected_entry()
+    if not selection then
+      return
+    end
+
+    opts.callback(selection)
+  end
+
   pickers
     .new({}, {
       results_title = "Go-To Commands",
@@ -117,16 +132,7 @@ function M.show_commands(opts)
       }),
       sorter = conf.generic_sorter(),
       attach_mappings = function(prompt_bufnr, map)
-        actions.select_default:replace(function()
-          actions.close(prompt_bufnr)
-
-          local selection = action_state.get_selected_entry()
-          if not selection then
-            return
-          end
-
-          opts.callback(selection)
-        end)
+        action_set.select:replace(replace)
 
         for key, value in pairs(opts.mappings) do
           map("i", key, function()
