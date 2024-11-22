@@ -31,7 +31,6 @@ M.config = {
         local file_path = io.local_file_path()
         local data = io.read_json(file_path)
         local new_command = trim(vim.fn.input("Enter the new command: "))
-        vim.print(new_command)
         if new_command == "" then
           vim.notify("Command was not updated")
         end
@@ -54,7 +53,7 @@ M.config = {
   },
 }
 
-local function use_picker(callback)
+function M.use_picker(callback)
   local file_path = io.local_file_path()
   local data = io.read_json(file_path)
   if next(data) == nil then
@@ -73,7 +72,7 @@ local function use_picker(callback)
 end
 
 function M.show_commands()
-  use_picker(function(selection)
+  M.use_picker(function(selection)
     local file_path = io.local_file_path()
     local data = io.read_json(file_path)
     data[selection.value.display].number = data[selection.value.display].number
@@ -115,7 +114,7 @@ function M.add_command(opts)
 end
 
 function M.delete_command()
-  use_picker(function(selection)
+  M.use_picker(function(selection)
     local display = selection.value.display
 
     if
