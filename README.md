@@ -19,7 +19,7 @@ Install with your favorite plugin manager. For example, with [lazy.nvim](https:/
     opts = {
         display_only = false,
         confirm_delete = true,
-        sort_by = "frequency", -- "frequency", "alphabetical", or callable
+        sort_by = "recency", -- "frequency", "alphabetical", "recency", or callable
     },
 }
 ```

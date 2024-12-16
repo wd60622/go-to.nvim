@@ -8,6 +8,10 @@ local function trim(str)
   return str:gsub("^%s*(.-)%s*$", "%1")
 end
 
+local current_time = function()
+  return os.date("%Y-%m-%d %H:%M:%S")
+end
+
 local M = {}
 
 local modify_command = function(selection)
@@ -39,7 +43,7 @@ end
 M.config = {
   display_only = false,
   confirm_delete = true,
-  sort_by = "frequency",
+  sort_by = "recency",
   mappings = {
     ["<C-m>"] = {
       action = modify_command,
@@ -80,6 +84,7 @@ function M.show_commands()
     local data = io.read_json(file_path)
     data[selection.value.display].number = data[selection.value.display].number
       + 1
+    data[selection.value.display].lastUsed = current_time()
     io.write_json(file_path, data)
 
     vim.cmd(":" .. selection.value.command)
@@ -112,7 +117,7 @@ function M.add_command(opts)
 
   local file_path = io.local_file_path()
   local data = io.read_json(file_path)
-  data[display] = { command = command, number = 0 }
+  data[display] = { command = command, number = 0, lastUsed = nil }
   io.write_json(file_path, data)
 end
 

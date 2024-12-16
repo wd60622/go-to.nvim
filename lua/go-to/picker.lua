@@ -15,6 +15,10 @@ local function frequency_sorter(a, b)
   return a.number > b.number
 end
 
+local function recency_sorted(a, b)
+  return (a.lastUsed or "") > (b.lastUsed or "")
+end
+
 local function create_sort(sorter)
   return function(data)
     table.sort(data, sorter)
@@ -25,6 +29,7 @@ end
 local sort_options = {
   alphabetical = create_sort(alphabetical_sorter),
   frequency = create_sort(frequency_sorter),
+  recency = create_sort(recency_sorted),
 }
 
 local function display_entry_maker(entry, max_width)
@@ -71,6 +76,15 @@ local function display_command_entry_maker(entry, max_width)
   }
 end
 
+local create_commands = function(data)
+  local commands = {}
+  for key, value in pairs(data) do
+    local row = vim.tbl_extend("force", { display = key }, value)
+    table.insert(commands, row)
+  end
+  return commands
+end
+
 function M.show_commands(opts)
   local data = opts.data
   local entry_maker
@@ -80,14 +94,7 @@ function M.show_commands(opts)
     entry_maker = display_command_entry_maker
   end
 
-  local commands = {}
-  for key, value in pairs(data) do
-    table.insert(commands, {
-      display = key,
-      command = value.command,
-      number = value.number,
-    })
-  end
+  local commands = create_commands(data)
 
   local max_width = 0
   for _, command in ipairs(commands) do
