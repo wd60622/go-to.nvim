@@ -10,44 +10,47 @@ end
 
 local M = {}
 
+local modify_command = function(selection)
+  local cmd = ":" .. selection.value.command .. " "
+  vim.fn.feedkeys(vim.api.nvim_replace_termcodes(cmd, true, true, true), "n")
+end
+
+local edit_command_name = function(selection)
+  local display = selection.value.display
+  local file_path = io.local_file_path()
+  local data = io.read_json(file_path)
+  local new_command = trim(vim.fn.input("Enter the new command: "))
+  if new_command == "" then
+    vim.notify("Command was not updated")
+  end
+  data[display].command = new_command
+  io.write_json(file_path, data)
+end
+
+local delete_command = function(selection)
+  local display = selection.value.display
+  local file_path = io.local_file_path()
+  local data = io.read_json(file_path)
+  data[display] = nil
+  io.write_json(file_path, data)
+  vim.notify("Deleted the command: " .. selection.value.display)
+end
+
 M.config = {
   display_only = false,
   confirm_delete = true,
   sort_by = "frequency",
   mappings = {
     ["<C-m>"] = {
-      action = function(selection)
-        local cmd = ":" .. selection.value.command .. " "
-        vim.fn.feedkeys(
-          vim.api.nvim_replace_termcodes(cmd, true, true, true),
-          "n"
-        )
-      end,
+      action = modify_command,
       close = true,
     },
     ["<C-e>"] = {
-      action = function(selection)
-        local display = selection.value.display
-        local file_path = io.local_file_path()
-        local data = io.read_json(file_path)
-        local new_command = trim(vim.fn.input("Enter the new command: "))
-        if new_command == "" then
-          vim.notify("Command was not updated")
-        end
-        data[display].command = new_command
-        io.write_json(file_path, data)
-      end,
+      action = edit_command_name,
       close = true,
     },
     ["<C-d>"] = {
-      action = function(selection)
-        local display = selection.value.display
-        local file_path = io.local_file_path()
-        local data = io.read_json(file_path)
-        data[display] = nil
-        io.write_json(file_path, data)
-        vim.notify("Deleted the command: " .. selection.value.display)
-      end,
+      action = delete_command,
       close = true,
     },
   },
